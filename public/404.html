@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>StarHouse Clothing | 404</title>
+ 
+    <style>
+        body{
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .error-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 100vh;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: var(--space-4);
+            animation: fadeIn 0.8s ease;
+            
+        }
+
+        .error-code {
+            font-size: 8rem;
+            font-weight: 800;
+            color: var(--color-white);
+            margin-bottom: var(--space-2);
+          
+            line-height: 1;
+        }
+
+        .error-title {
+            font-size: var(--font-size-2xl);
+            margin-bottom: var(--space-6);
+            color: var(--color-white);
+        }
+
+        .error-message {
+            font-size: var(--font-size-lg);
+            color: var(--color-silver);
+            margin-bottom: var(--space-8);
+            max-width: 450px;
+        }
+
+        .error-illustration {
+            width: 200px;
+            height: 200px;
+            margin-bottom: var(--space-6);
+            position: relative;
+            margin-top: var(--space-4);
+        }
+
+       
+
+        .error-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            color: var(--color-white);
+  
+        }
+
+        .home-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s var(--ease-out-quart);
+        }
+
+        .home-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .home-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.4s var(--ease-out-quart);
+        }
+
+        .home-btn:hover::after {
+            left: 100%;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+    
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-code">404</div>
+        <h1 class="error-title">¡Sitio no encontrado!</h1>
+        
+
+        
+        <p class="error-message">La página que buscas no existe o ha sido eliminada.</p>
+        
+        <a href="/" class="btn btn-primary btn-lg home-btn">
+            Volver al inicio
+        </a>
+    </div>
+</body>
+
+</html>

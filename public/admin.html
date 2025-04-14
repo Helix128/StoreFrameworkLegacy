@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>StarHouse | Panel de Control</title>
+</head>
+<body>
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal-overlay show">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>Panel de control</h1>
+                <p>Ingresa la contraseña para acceder</p>
+            </div>
+            <div class="login-form-container">
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input type="password" id="password" class="form-control" placeholder="Ingresa la contraseña">
+                    </div>
+                    <div id="login-error" class="alert alert-danger" style="display: none;">
+                        <div class="alert-message">Contraseña incorrecta</div>
+                    </div>
+                    <button type="button" id="login-button" class="btn btn-primary btn-block">Acceder</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Admin Interface (hidden until logged in) -->
+    <div id="admin-dashboard" style="display: none;">
+        <div class="admin-navbar">
+            <div class="container">
+                <div class="navbar-container">
+                    <a href="index.html" class="navbar-brand">StarHouse</a>
+                    <div class="navbar-nav">
+                        <a href="index.html" class="navbar-link">Ver Tienda</a>
+                        <button id="logout-button" class="btn btn-outline">Cerrar Sesión</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="admin-content">
+                <div class="admin-header">
+                    <h1>Gestión de Productos</h1>
+                    <button id="add-product-button" class="btn btn-primary">Añadir Producto</button>
+                </div>
+
+                <div id="loading" class="loading-container">
+                    <div class="spinner"></div>
+                </div>
+
+                <div id="error-message" class="alert alert-danger" style="display: none;">
+                    <div class="alert-message">Error cargando productos.</div>
+                </div>
+
+                <div id="products-table-container" style="display: none;">
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Imagen</th>
+                                    <th>Nombre</th>
+                                    <th>Precio</th>
+                                    <th>Etiquetas</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-table-body">
+                                <!-- Products will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="no-products" class="no-products" style="display: none;">
+                    <p>No hay productos disponibles</p>
+                    <button id="add-first-product" class="btn btn-primary">Añadir Primer Producto</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Form Modal (add/edit) -->
+    <div id="product-modal" class="modal-overlay">
+        <div class="modal product-modal">
+            <div class="modal-header">
+                <h2 id="product-modal-title" class="modal-title">Añadir Producto</h2>
+                <button id="close-product-modal" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="product-form">
+                    <input type="hidden" id="product-id">
+                    <div class="form-group">
+                        <label for="product-name" class="form-label">Nombre del Producto</label>
+                        <input type="text" id="product-name" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-price" class="form-label">Precio (CLP)</label>
+                        <input type="number" id="product-price" name="price" class="form-control" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-description" class="form-label">Descripción</label>
+                        <textarea id="product-description" name="description" class="form-control" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-image" class="form-label">Imagen</label>
+                        <div class="image-preview-container" style="margin-bottom: 10px; display: none;">
+                            <img id="image-preview" style="max-width: 200px; max-height: 200px;">
+                        </div>
+                        <input type="file" id="product-image" name="image" class="form-control" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label for="product-tags" class="form-label">Etiquetas (separadas por comas)</label>
+                        <input type="text" id="product-tags" name="tags" class="form-control">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-product" class="btn btn-outline">Cancelar</button>
+                <button id="save-product" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal-overlay">
+        <div class="modal delete-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Confirmar Eliminación</h2>
+                <button id="close-delete-modal" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.</p>
+                <div id="delete-product-preview" class="delete-product-preview">
+                    <img id="delete-product-image" alt="Product image">
+                    <div class="delete-product-details">
+                        <h4 id="delete-product-name"></h4>
+                        <p id="delete-product-price"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-delete" class="btn btn-outline">Cancelar</button>
+                <button id="confirm-delete" class="btn btn-danger">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="notification-modal" class="modal-overlay">
+        <div class="modal notification-modal">
+            <div class="modal-header">
+                <h2 id="notification-title" class="modal-title">Notificación</h2>
+                <button id="close-notification-modal" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="notification-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="notification-ok" class="btn btn-primary">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
