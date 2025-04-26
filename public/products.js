@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchButton = document.getElementById('search-button');
     const tagFiltersContainer = document.getElementById('tag-filters');
     const clearFiltersButton = document.getElementById('clear-filters');
+    const sortSelect = document.getElementById('sort-select');
+    const sortDirectionButton = document.getElementById('sort-direction');
+    const trendingButton = document.getElementById('trendingButton');
 
     let allProducts = [];
     let activeFilters = [];
@@ -13,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastSearchTerm = '';
     let lastFilterSet = [];
     let tagsCreated = false; // Flag to ensure tags are created only once
+    let currentSortOption = 'trending'; // Opción de ordenamiento predeterminada
+    let isAscending = true; // Dirección de ordenamiento predeterminada
 
     // Function to fetch products from JSON file (no caching)
     async function fetchProducts() {
@@ -165,7 +170,54 @@ document.addEventListener('DOMContentLoaded', () => {
         return filtered;
     }
 
-    // Function to filter and display products
+    // Nueva función para ordenar productos
+    function sortProducts(products) {
+        // Crear una copia para no modificar el array original
+        const sortedProducts = [...products];
+        
+        switch (currentSortOption) {
+            case 'trending':
+                // Ordenar primero por trending (los productos trending primero)
+                // y luego alfabéticamente por nombre
+                sortedProducts.sort((a, b) => {
+                    const aTrending = a.tags.includes('trending') ? 1 : 0;
+                    const bTrending = b.tags.includes('trending') ? 1 : 0;
+                    
+                    // Si los estados trending son diferentes, ordenar por ellos
+                    if (bTrending !== aTrending) {
+                        return bTrending - aTrending;
+                    }
+                    
+                    // Si ambos son trending o ambos no son trending, ordenar alfabéticamente
+                    return isAscending ? 
+                        a.name.localeCompare(b.name) : 
+                        b.name.localeCompare(a.name);
+                });
+                break;
+                
+            case 'alphabetical':
+                // Ordenar alfabéticamente por nombre
+                sortedProducts.sort((a, b) => {
+                    return isAscending ? 
+                        a.name.localeCompare(b.name) : 
+                        b.name.localeCompare(a.name);
+                });
+                break;
+                
+            case 'price':
+                // Ordenar por precio
+                sortedProducts.sort((a, b) => {
+                    return !isAscending ? 
+                        a.price - b.price : 
+                        b.price - a.price;
+                });
+                break;
+        }
+        
+        return sortedProducts;
+    }
+
+    // Modificar la función filterAndDisplayProducts para incluir el ordenamiento
     function filterAndDisplayProducts() {
         if (!allProducts || allProducts.length === 0) {
             displayInitialMessage();
@@ -174,10 +226,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const searchTerm = searchInput.value.trim();
         const filteredProducts = filterProducts(allProducts, searchTerm, activeFilters);
+        
+        // Ordenar los productos filtrados
+        const sortedProducts = sortProducts(filteredProducts);
 
-        displayProducts(filteredProducts);
+        displayProducts(sortedProducts);
 
-        if (filteredProducts.length === 0) {
+        if (sortedProducts.length === 0) {
             productsContainer.innerHTML = `
                 <div class="no-results">
                     <p>No se encontraron productos que coincidan con tu búsqueda o filtros.</p>
@@ -377,6 +432,35 @@ document.addEventListener('DOMContentLoaded', () => {
             filterAndDisplayProducts();
 
         });
+
+        // Eventos para ordenamiento
+        sortSelect.addEventListener('change', function() {
+            currentSortOption = this.value;
+            
+            // Mostrar/ocultar botón de dirección según la opción seleccionada
+            if (currentSortOption === 'trending') {
+                sortDirectionButton.style.display = 'none';
+            } else {
+                sortDirectionButton.style.display = 'flex';
+            }
+            
+            filterAndDisplayProducts();
+        });
+        
+        sortDirectionButton.addEventListener('click', function() {
+            isAscending = !isAscending;
+            this.classList.toggle('desc', !isAscending);
+            
+            // Update FontAwesome icon based on sort direction
+            const sortIcon = document.getElementById('sort-icon');
+            if (isAscending) {
+                sortIcon.className = 'fas fa-arrow-down';
+            } else {
+                sortIcon.className = 'fas fa-arrow-down';
+            }
+            
+            filterAndDisplayProducts();
+        });
     }
 
     // Initialize the page
@@ -389,7 +473,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!searchButton) missingElements.push('search-button');
         if (!tagFiltersContainer) missingElements.push('tag-filters');
         if (!clearFiltersButton) missingElements.push('clear-filters');
-        var trendingButton = document.getElementById('trendingButton');
+        if (!sortSelect) missingElements.push('sort-select');
+        if (!sortDirectionButton) missingElements.push('sort-direction');
         if (!trendingButton) missingElements.push('trendingButton');
 
         if (missingElements.length > 0) {
@@ -402,6 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setupEventListeners();
         clearFiltersButton.style.display = 'none'; // Keep hiding clear button initially
+        sortDirectionButton.style.display = 'none'; // Ocultar botón de dirección inicialmente
         triggerSearchAndFetch(); // Fetch products immediately on load
     }
 

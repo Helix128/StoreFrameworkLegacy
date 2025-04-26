@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const carouselError = document.getElementById('carousel-error');
     const prevButton = document.getElementById('carousel-prev');
     const nextButton = document.getElementById('carousel-next');
-    const indicatorsContainer = document.getElementById('carousel-indicators');
     
     // Variables
     let trendingProducts = [];
@@ -17,6 +16,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let autoScrollInterval;
     const autoScrollDelay = 5000; // Autoscroll every 5 seconds
     let isHovering = false; // Track hover state
+    
+    // Drag/touch functionality variables
+    let isDragging = false;
+    let startPos = 0;
+    let currentTranslate = 0;
+    let prevTranslate = 0;
+    let animationID = 0;
+    let dragThreshold = 50; // Minimum drag distance to trigger slide change
     
     // Configure how many slides to show at different screen sizes
     function calculateSlidesPerView() {
@@ -92,14 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
             resetAutoScroll(); // Reset timer on manual navigation
         });
         
-        // Add click events to indicators
-        indicatorsContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('carousel-indicator')) {
-                const slideIndex = parseInt(e.target.dataset.slide);
-                goToSlide(slideIndex);
-                resetAutoScroll(); // Reset timer on manual navigation
-            }
-        });
+        // Add drag event handlers for the carousel
+        setupDragEvents();
         
         // Add click event to all product cards for details
         carouselTrack.addEventListener('click', (e) => {
@@ -127,13 +128,111 @@ document.addEventListener('DOMContentLoaded', () => {
         startAutoScroll();
     }
 
+    // Setup mouse/touch drag events
+    function setupDragEvents() {
+        // Mouse Events
+        carouselTrack.addEventListener('mousedown', dragStart);
+        carouselTrack.addEventListener('mousemove', drag);
+        carouselTrack.addEventListener('mouseup', dragEnd);
+        carouselTrack.addEventListener('mouseleave', dragEnd);
+        
+        // Touch Events
+        carouselTrack.addEventListener('touchstart', dragStart);
+        carouselTrack.addEventListener('touchmove', drag);
+        carouselTrack.addEventListener('touchend', dragEnd);
+        
+        // Prevent context menu when dragging
+        carouselTrack.addEventListener('contextmenu', e => {
+            if (isDragging) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        });
+    }
+    
+    // Start drag
+    function dragStart(event) {
+        // Get the starting position of the cursor/finger
+        startPos = getPositionX(event);
+        isDragging = true;
+        isHovering = true; // Consider dragging as hovering to stop autoscroll
+        stopAutoScroll();
+        
+        // Store current position
+        currentTranslate = -slideWidth * currentSlide;
+        prevTranslate = currentTranslate;
+        
+        // Cancel any click events if we're starting to drag
+        if (event.type === 'touchstart') {
+            event.target.addEventListener('click', preventClick, { once: true });
+        }
+        
+        // Stop default behavior (e.g., text selection)
+        event.preventDefault();
+    }
+    
+    // During drag
+    function drag(event) {
+        if (!isDragging) return;
+        
+        const currentPosition = getPositionX(event);
+        const diff = currentPosition - startPos;
+        
+        // Calculate the new position
+        currentTranslate = prevTranslate + diff;
+        
+        // Apply transform to move the carousel
+        carouselTrack.style.transform = `translateX(${currentTranslate}px)`;
+        
+        // Prevent default behavior like scrolling the page
+        event.preventDefault();
+    }
+    
+    // End drag
+    function dragEnd(event) {
+        if (!isDragging) return;
+        isDragging = false;
+        isHovering = false;
+        
+        const movedBy = currentTranslate - prevTranslate;
+        
+        // Determine if we should change slides based on drag distance
+        if (Math.abs(movedBy) > dragThreshold) {
+            if (movedBy > 0) {
+                // Dragged right -> go to previous slide
+                goToSlide(currentSlide - 1);
+            } else {
+                // Dragged left -> go to next slide
+                goToSlide(currentSlide + 1);
+            }
+        } else {
+            // Not dragged enough, snap back to current slide
+            goToSlide(currentSlide);
+        }
+        
+        startAutoScroll(); // Restart autoscroll after dragging ends
+    }
+    
+    // Get the x position of mouse or touch event
+    function getPositionX(event) {
+        return event.type.includes('mouse') 
+            ? event.pageX 
+            : event.touches[0].clientX;
+    }
+    
+    // Prevent click after drag
+    function preventClick(event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
     // Handle window resize
     function handleResize() {
         const newSlidesPerView = calculateSlidesPerView();
         if (newSlidesPerView !== slidesPerView) {
             slidesPerView = newSlidesPerView;
             updateCarouselDimensions();
-            createIndicators(); // Recreate indicators if slides per view changes
             // Adjust currentSlide if it's now out of bounds
             const maxIndex = Math.max(0, totalSlides - slidesPerView);
             if (currentSlide > maxIndex) {
@@ -179,56 +278,26 @@ document.addEventListener('DOMContentLoaded', () => {
         
         currentSlide = index;
         const offset = -slideWidth * currentSlide;
+        
+        // Use CSS transition for smooth animation
+        carouselTrack.style.transition = 'transform 0.3s ease-out';
         carouselTrack.style.transform = `translateX(${offset}px)`;
         
-        // Update indicators
-        updateIndicators();
+        // Store the offset value for drag calculations
+        currentTranslate = offset;
+        prevTranslate = offset;
         
         // Update button states (consider disabling if not looping)
         const disableNav = totalSlides <= slidesPerView;
         prevButton.disabled = disableNav;
         nextButton.disabled = disableNav;
+        
+        // Remove transition after animation completes
+        setTimeout(() => {
+            carouselTrack.style.transition = '';
+        }, 300);
     }
     
-    // Create carousel indicators
-    function createIndicators() {
-        indicatorsContainer.innerHTML = '';
-        // Calculate indicators needed based on pages, not individual slides
-        const indicatorsNeeded = Math.max(1, totalSlides - slidesPerView + 1); // Number of possible start positions
-        
-        // Don't show indicators if only one page
-        if (indicatorsNeeded <= 1) {
-            indicatorsContainer.style.display = 'none';
-            return;
-        }
-        
-        indicatorsContainer.style.display = 'flex'; // Ensure visible if needed
-        for (let i = 0; i < indicatorsNeeded; i++) {
-            const indicator = document.createElement('button');
-            indicator.classList.add('carousel-indicator');
-            indicator.setAttribute('aria-label', `Go to slide group ${i + 1}`); // Accessibility
-            indicator.dataset.slide = i; // Index corresponds to the first slide in the group
-            indicatorsContainer.appendChild(indicator);
-        }
-        
-        updateIndicators(); // Set the initial active indicator
-    }
-    
-    // Update indicators active state
-    function updateIndicators() {
-        const indicators = indicatorsContainer.querySelectorAll('.carousel-indicator');
-        indicators.forEach((indicator) => {
-            // Indicator index matches the currentSlide index
-            if (parseInt(indicator.dataset.slide) === currentSlide) {
-                indicator.classList.add('active');
-                indicator.setAttribute('aria-current', 'true');
-            } else {
-                indicator.classList.remove('active');
-                indicator.removeAttribute('aria-current');
-            }
-        });
-    }
-
     // --- Autoscroll Functions ---
     function startAutoScroll() {
         stopAutoScroll(); // Clear any existing interval
@@ -330,7 +399,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 carouselLoading.style.display = 'none';
                 prevButton.style.display = 'none'; // Hide nav if no products
                 nextButton.style.display = 'none';
-                indicatorsContainer.style.display = 'none';
                 return;
             }
             
@@ -349,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Initialize carousel after content is loaded
             slidesPerView = calculateSlidesPerView(); // Recalculate on load
-            initCarousel(); // This now calls updateCarouselDimensions, createIndicators, goToSlide(0), and starts autoscroll
+            initCarousel(); // This now calls updateCarouselDimensions, goToSlide(0), and starts autoscroll
             
             // Show "body.loaded" to hide global loading overlay
             document.body.classList.add('loaded');
@@ -359,7 +427,6 @@ document.addEventListener('DOMContentLoaded', () => {
             carouselError.style.display = 'flex';
             prevButton.style.display = 'none'; // Hide nav on error
             nextButton.style.display = 'none';
-            indicatorsContainer.style.display = 'none';
         } finally {
             carouselLoading.style.display = 'none';
         }

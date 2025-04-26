@@ -10,9 +10,12 @@ app = Flask(__name__)
 # Contraseña para la autenticación admin
 password = "admin"
 
+# Get the current directory
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Database configuration
-DB_PATH = 'store.db'
-UPLOAD_FOLDER = os.path.join('public', 'uploads')
+DB_PATH = os.path.join(CURRENT_DIR, 'store.db')
+UPLOAD_FOLDER = os.path.join(CURRENT_DIR, 'public', 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 # Ensure upload directory exists
@@ -63,8 +66,9 @@ def init_db():
     if cursor.fetchone()[0] == 0:
         try:
             # Try to migrate data from existing JSON file
-            if os.path.exists('public/products.json'):
-                with open('public/products.json', 'r', encoding='utf-8') as file:
+            json_path = os.path.join(CURRENT_DIR, 'public', 'products.json')
+            if os.path.exists(json_path):
+                with open(json_path, 'r', encoding='utf-8') as file:
                     products = json.load(file)
                 
                 for product in products:
@@ -109,14 +113,12 @@ init_db()
 
 @app.route('/')
 def serve_index():
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    public_dir = os.path.join(current_dir, 'public')
+    public_dir = os.path.join(CURRENT_DIR, 'public')
     return send_from_directory(public_dir, "index.html")
 
 @app.route('/<filename>')
 def serve_file(filename):
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    public_dir = os.path.join(current_dir, 'public')
+    public_dir = os.path.join(CURRENT_DIR, 'public')
     
     if os.path.exists(os.path.join(public_dir, filename + ".html")):
         return send_from_directory(public_dir, filename + ".html")
@@ -335,7 +337,7 @@ def update_product(product_id):
                 
                 # Delete old image if it was in uploads folder
                 if old_image and old_image.startswith('uploads/'):
-                    old_path = os.path.join('public', old_image)
+                    old_path = os.path.join(CURRENT_DIR, 'public', old_image)
                     if os.path.exists(old_path):
                         os.remove(old_path)
         
@@ -418,7 +420,7 @@ def delete_product(product_id):
         # Delete image file if it's in uploads folder
         image_path = product[0]
         if image_path and image_path.startswith('uploads/'):
-            file_path = os.path.join('public', image_path)
+            file_path = os.path.join(CURRENT_DIR, 'public', image_path)
             if os.path.exists(file_path):
                 os.remove(file_path)
         
@@ -440,8 +442,7 @@ def delete_product(product_id):
 
 @app.errorhandler(404)
 def page_not_found(e):
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    public_dir = os.path.join(current_dir, 'public')
+    public_dir = os.path.join(CURRENT_DIR, 'public')
     return send_from_directory(public_dir, "404.html"), 404
 
 if __name__ == '__main__':

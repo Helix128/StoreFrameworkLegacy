@@ -172,6 +172,8 @@ document.addEventListener('DOMContentLoaded', () => {
         productModalTitle.textContent = 'Añadir Producto';
         imagePreviewContainer.style.display = 'none';
         productModal.classList.add('show');
+        // Reset file input to ensure no cached file selection
+        productImage.value = '';
     }
 
     // Open edit product modal
@@ -186,6 +188,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('product-price').value = product.price;
         document.getElementById('product-description').value = product.description;
         document.getElementById('product-tags').value = product.tags.join(', ');
+        
+        // Reset file input to ensure no cached file selection
+        productImage.value = '';
         
         // Show image preview if available
         if (product.image) {
@@ -237,6 +242,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentProductId) {
                 url = `/api/products/${currentProductId}`;
                 method = 'PUT';
+                
+                // Check if image input is empty (no new file selected)
+                if (!productImage.files || !productImage.files[0]) {
+                    // Remove the empty image field to prevent overwriting existing image
+                    formData.delete('image');
+                }
             }
             
             console.log(`Submitting ${method} request to ${url}`);

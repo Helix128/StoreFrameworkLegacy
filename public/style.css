@@ -316,7 +316,6 @@
       height: 100%;
       object-fit: cover;
       opacity: 1.0;
-      background-attachment: fixed; /* Keeps image fixed during scroll */
     }
     
     @keyframes fadeInUp {
@@ -668,7 +667,7 @@
     
     .carousel-indicators {
       position: absolute;
-      bottom: -30px; /* Position below the carousel */
+      bottom: 5%; /* Position below the carousel */
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -1264,17 +1263,32 @@
          padding: var(--space-4);
       }
       
-      .hero-image {
-         display: none;
-      }
       
       .grid {
-         grid-template-columns: repeat(1, 1fr) !important;
+         grid-template-columns: repeat(2, 1fr) !important; /* Changed from 1fr to 2fr */
+         gap: var(--space-3); /* Reduced gap for smaller screens */
       }
       
       .col-xs-12 {
          flex: 0 0 100%;
          max-width: 100%;
+      }
+      
+      /* Adjust card styles for smaller screens */
+      .card-title {
+        font-size: var(--font-size-md);
+      }
+      
+      .card-body {
+        padding: var(--space-3);
+      }
+      
+      .price {
+        font-size: var(--font-size-md);
+      }
+      
+      .card-footer {
+        padding: var(--space-2) var(--space-3);
       }
     }
     
@@ -1614,6 +1628,37 @@
       background-color: var(--color-dark-gray);
       border-radius: var(--border-radius-md);
     }
+
+    /* Estilos para las opciones de ordenamiento */
+    .sort-options {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+    }
+    
+    .sort-options select {
+      flex: 1;
+    }
+    
+    #sort-direction {
+      padding: var(--space-2);
+      min-width: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform var(--transition-fast);
+    }
+    
+    #sort-direction.desc #sort-icon {
+      transform: rotate(180deg);
+      display: inline-block;
+    }
+    
+    #sort-direction:hover {
+      background-color: var(--color-gray);
+      border-color: var(--color-white);
+    }
     
     /* ==========================================================================
         PRODUCT CONTENT LAYOUT WITH SIDEBAR
@@ -1857,4 +1902,3 @@
       to { opacity: 1; }
     }
 
-   

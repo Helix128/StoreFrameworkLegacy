@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <title>StarHouse Clothing | Catálogo</title>
     <script src="nav.js" defer></script>
 </head>
 <body>
-
+    <div style="background-image: url(ProductBG.png); background-attachment: fixed; background-color: rgba(0, 0, 0, 0.7); background-blend-mode: darken; background-size: cover; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; filter:blur(6px); "></div> 
 
     <div class="container">
         <br>
@@ -22,6 +23,21 @@
                         <label for="product-search" class="form-label">Búsqueda avanzada</label>
                         <input type="text" id="product-search" class="form-control" placeholder="Nombre">
                         <button id="search-button" class="btn btn-primary">Buscar</button>
+                    </div>
+                </div>
+                
+                <!-- Nueva sección de ordenamiento -->
+                <div class="filter-container">
+                    <h3 class="filter-title">Ordenar por</h3>
+                    <div class="sort-options">
+                        <select id="sort-select" class="form-control">
+                            <option value="trending">Tendencias</option>
+                            <option value="alphabetical">Alfabético</option>
+                            <option value="price">Precio</option>
+                        </select>
+                        <button id="sort-direction" class="btn btn-outline btn-sm">
+                            <i id="sort-icon" class="fas fa-arrow-down"></i>
+                        </button>
                     </div>
                 </div>
                 
