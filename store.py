@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 
 # Contraseña para la autenticación admin
-password = "admin"
+password = "LM1677"
 
 # Get the current directory
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
