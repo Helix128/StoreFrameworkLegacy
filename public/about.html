@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>StarHouse | Cómo Comprar</title>
+    <script src="nav.js" defer></script>
+</head>
+<body>
+    <div style="background-image: url(ProductBG.png); background-attachment: fixed; background-color: rgba(0, 0, 0, 0.7); background-blend-mode: darken; background-size: cover; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; filter:blur(6px);"></div> 
+
+    <div class="container">
+        <div class="about-container">
+            <div class="about-header">
+                <h1 class="hero-title">Información</h1>
+            </div>
+            
+            <div class="welcome-section">
+                <div class="about-card welcome-card">
+                    <h2><i class="fas fa-comment-dots about-icon"></i> ¡Bienvenid@! </h2>  
+                    <p>¿Te gustó algo? Cotiza por DM enviando una foto o el nombre de la prenda/calzado.</p>
+               
+                </div>
+            </div>
+            
+            <div class="faq-section">
+                <h2>Preguntas Frecuentes</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3><i class="fas fa-shipping-fast"></i> ¿Cuánto tardan los envíos?</h3>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Tu pedido llegará 6 a 12 días después de realizar el pago.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3><i class="fas fa-tshirt"></i> ¿Qué productos ofrecen?</h3>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Lo que ves aquí es solo una parte de nuestro catálogo. Si buscas algo en especial, escríbenos y lo conseguimos.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3><i class="fab fa-instagram"></i> ¿Cómo puedo comprar?</h3>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>¡Tu outfit ideal está a un DM de distancia! Toda nuestra atención es 100% por Instagram.</p>
+                        <div class="faq-instagram">
+                            <a href="https://instagram.com/starhouse.cl" target="_blank" class="instagram-link">
+                                <i class="fab fa-instagram"></i>
+                                starhouse.cl
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .about-container {
+            padding: var(--space-8) 0;
+            max-width: 900px;
+            margin: 0 auto;
+            animation: fadeIn 0.8s ease;
+        }
+        
+        .about-header {
+            text-align: center;
+            margin-bottom: var(--space-8);
+        }
+        
+        .welcome-section {
+            margin-bottom: var(--space-8);
+        }
+        
+        .welcome-card {
+            background-color: var(--color-dark-gray);
+            border-radius: var(--border-radius-md);
+            padding: var(--space-6);
+            position: relative;
+            box-shadow: var(--shadow-md);
+            transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .welcome-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .welcome-card h2 {
+            color: var(--color-white);
+            margin-bottom: var(--space-4);
+            font-weight: 700;
+        }
+        
+        .welcome-card p {
+            color: var(--color-light-silver);
+            margin-bottom: var(--space-4);
+            font-size: var(--font-size-lg);
+            line-height: 1.6;
+            flex: 1;
+        }
+        
+        .faq-section {
+            margin-top: var(--space-8);
+        }
+        
+        .faq-section h2 {
+            color: var(--color-white);
+            margin-bottom: var(--space-6);
+            text-align: center;
+            font-weight: 700;
+        }
+        
+        .faq-item {
+            background-color: var(--color-dark-gray);
+            border-radius: var(--border-radius-md);
+            margin-bottom: var(--space-4);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        
+        .faq-question {
+            padding: var(--space-4) var(--space-6);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color var(--transition-fast);
+        }
+        
+        .faq-question:hover {
+            background-color: var(--color-darker-gray, #222);
+        }
+        
+        .faq-question h3 {
+            color: var(--color-white);
+            margin: 0;
+            font-weight: 600;
+            font-size: var(--font-size-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .faq-question h3 i {
+            font-size: 1.2rem;
+            color: var(--color-white);
+            opacity: 0.7;
+            transition: opacity var(--transition-fast);
+        }
+        
+        .faq-question:hover h3 i {
+            opacity: 1;
+        }
+        
+        .faq-question .toggle-icon {
+            color: var(--color-white);
+            transition: transform 0.3s ease;
+        }
+        
+        .faq-item.active .faq-question .toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: 
+                max-height 0.3s ease,
+                opacity 0.3s ease,
+                transform 0.3s ease,
+                padding 0.3s ease;
+            padding: 0 var(--space-6);
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        
+        .faq-item.active .faq-answer {
+            max-height: 1000px;
+            padding-bottom: var(--space-6);
+            opacity: 1;
+            transform: translateY(0);
+            transition: 
+                max-height 0.5s,
+                opacity 0.3s ease 0.2s,
+                transform 0.3s ease 0.2s,
+                padding 0.3s ease;
+        }
+        
+        .faq-icon {
+            display: none; /* Hide the separate icon containers */
+        }
+        
+        .faq-instagram {
+            display: flex;
+            justify-content: center;
+            margin-top: var(--space-4);
+        }
+        
+        .instagram-link {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            background-color: #8134af;
+            background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+            color: white;
+            padding: var(--space-3) var(--space-6);
+            border-radius: var(--border-radius-full);
+            transition: transform var(--transition-fast);
+            font-weight: 600;
+        }
+        
+        .instagram-link:hover {
+            transform: scale(1.05);
+            color: white;
+        }
+
+        .contact-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+            color: white;
+            padding: var(--space-3) var(--space-6);
+            border-radius: var(--border-radius-md);
+            font-weight: 600;
+            margin-top: var(--space-4);
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .contact-button:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            color: white;
+        }
+
+        .about-icon-container, .about-icon {
+            /* Keep existing styles for these elements */
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const faqItems = document.querySelectorAll('.faq-item');
+            
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                
+                question.addEventListener('click', () => {
+                    // Toggle active class for the clicked item
+                    const wasActive = item.classList.contains('active');
+                    
+                    // Close all items first
+                    faqItems.forEach(otherItem => {
+                        if (otherItem.classList.contains('active')) {
+                            otherItem.classList.remove('active');
+                        }
+                    });
+                    
+                    // If the clicked item wasn't active, make it active
+                    if (!wasActive) {
+                        item.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -110,6 +110,10 @@ def init_db():
 
 # Initialize database when the app starts
 init_db()
+@app.route('/favicon.ico')
+def serve_favicon():
+    public_dir = os.path.join(CURRENT_DIR, 'public')
+    return send_from_directory(public_dir, "favicon.ico")
 
 @app.route('/')
 def serve_index():
@@ -444,6 +448,7 @@ def delete_product(product_id):
 def page_not_found(e):
     public_dir = os.path.join(CURRENT_DIR, 'public')
     return send_from_directory(public_dir, "404.html"), 404
+
 
 if __name__ == '__main__':
     app.run(debug=True)

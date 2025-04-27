@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearFiltersButton = document.getElementById('clear-filters');
     const sortSelect = document.getElementById('sort-select');
     const sortDirectionButton = document.getElementById('sort-direction');
-    const trendingButton = document.getElementById('trendingButton');
 
     let allProducts = [];
     let activeFilters = [];
@@ -66,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="card-body">
                     <h3 class="card-title">${product.name}</h3>
-                    <div class="price">$${(product.price).toLocaleString()} CLP</div>
                     <div class="product-tags">
                         ${product.tags.map(tag => `<span class="badge">${tag}</span>`).join('')}
                     </div>
@@ -418,21 +416,6 @@ document.addEventListener('DOMContentLoaded', () => {
             filterAndDisplayProducts();
         });
 
-        trendingButton.addEventListener('click', () => { 
-
-            trendingButton.classList.toggle('active');
-
-            if ( trendingButton.classList.contains('active')) {
-                activeFilters.push("trending");
-            } else {
-                activeFilters = activeFilters.filter(t => t !== "trending");
-            }
-
-            // Apply filters immediately after tag change
-            filterAndDisplayProducts();
-
-        });
-
         // Eventos para ordenamiento
         sortSelect.addEventListener('change', function() {
             currentSortOption = this.value;
@@ -475,7 +458,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!clearFiltersButton) missingElements.push('clear-filters');
         if (!sortSelect) missingElements.push('sort-select');
         if (!sortDirectionButton) missingElements.push('sort-direction');
-        if (!trendingButton) missingElements.push('trendingButton');
 
         if (missingElements.length > 0) {
             console.error(`Initialization failed: Missing DOM elements: ${missingElements.join(', ')}`);

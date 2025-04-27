@@ -72,7 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="card-body">
                         <h3 class="card-title">${product.name}</h3>
-                        <div class="price">$${(product.price).toLocaleString()} CLP</div>
                     </div>
                     <div class="card-footer">
                         <button class="btn btn-outline btn-sm details-button" data-product-id="${product.id}">Detalles</button>
