@@ -7,6 +7,87 @@
     <title>StarHouse Clothing</title>
     <script src="nav.js" defer></script>
     <script src="index.js" defer></script>
+    <style>
+        /* CTA Section Styles */
+        .cta-section.full-width {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .cta-split {
+            display: flex;
+            width: 100%;
+        }
+        
+        .cta-half {
+            flex: 1;
+            height: 500px;
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+        
+        .cta-half::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Dark overlay for better text visibility */
+        }
+        
+        .cta-content {
+            padding: 2rem;
+            position: relative; /* To appear above the overlay */
+            z-index: 1;
+        }
+        
+        .cta-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+        }
+        
+        .btn-light {
+            background-color: white;
+            color: #000;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-light:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .cta-split {
+                flex-direction: column;
+            }
+            
+            .cta-half {
+                height: 350px;
+            }
+        }
+    </style>
 </head>
 <body>
 <section class="hero">
@@ -14,39 +95,28 @@
         <div class="hero-content hero-box">
             <h1 class="hero-title">Eleva tu estilo con StarHouse</h1>
             <p class="hero-subtitle">Explora nuestra colección streetwear de edición limitada.</p>
-            <div class="hero-cta"></div>
-                <a href="/products" class="btn btn-outline btn-lg hero-subtitle">Ver Catálogo</a>
-            </div>
         </div>
     </div>
     <img src="HeroDemo.png" alt="StarHouse clothing" class="hero-image">
 </section>
 
-<!-- Trending Products Carousel Section -->
-<section class="trending-section container">
-    <h2 class="section-title hero-title">DESTACADO</h2>
-    <div class="carousel-container">
-        <button class="carousel-nav carousel-prev" id="carousel-prev" aria-label="Previous slide">&#10094;</button>
-        
-        <div class="carousel-wrapper">
-            <div class="carousel-track" id="trending-carousel">
-                <!-- Trending products will be loaded here by JavaScript -->
-                <div class="carousel-loading" id="carousel-loading">
-                    <div class="spinner"></div>
-                </div>
-                <div class="carousel-error" id="carousel-error" style="display: none;">
-                    <p>Error</p>
-                </div>
+<!-- Full Width Call to Action Section -->
+<section class="cta-section full-width">
+    <div class="cta-split">
+        <div class="cta-half" style="background-image: url('left.png');">
+            <div class="cta-content">
+                <h2>Descubre nuestra colección</h2>
+                <a href="/products" class="btn btn-outline">Ver Catálogo</a>
             </div>
         </div>
-        
-        <button class="carousel-nav carousel-next" id="carousel-next" aria-label="Next slide">&#10095;</button>
-    </div>
-    <div class="carousel-indicators" id="carousel-indicators">
-        <!-- Indicators will be added by JavaScript -->
+        <div class="cta-half" style="background-image: url('right.png');">
+            <div class="cta-content">
+                <h2>¿Necesitas ayuda?</h2>
+                <a href="/about" class="btn btn-outline">Información</a>
+            </div>
+        </div>
     </div>
 </section>
-
 
 <!-- Product Modal -->
 <div class="modal-overlay" id="product-modal">

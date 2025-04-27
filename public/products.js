@@ -6,8 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchButton = document.getElementById('search-button');
     const tagFiltersContainer = document.getElementById('tag-filters');
     const clearFiltersButton = document.getElementById('clear-filters');
-    const sortSelect = document.getElementById('sort-select');
-    const sortDirectionButton = document.getElementById('sort-direction');
 
     let allProducts = [];
     let activeFilters = [];
@@ -416,34 +414,9 @@ document.addEventListener('DOMContentLoaded', () => {
             filterAndDisplayProducts();
         });
 
-        // Eventos para ordenamiento
-        sortSelect.addEventListener('change', function() {
-            currentSortOption = this.value;
-            
-            // Mostrar/ocultar botón de dirección según la opción seleccionada
-            if (currentSortOption === 'trending') {
-                sortDirectionButton.style.display = 'none';
-            } else {
-                sortDirectionButton.style.display = 'flex';
-            }
-            
-            filterAndDisplayProducts();
-        });
+  
         
-        sortDirectionButton.addEventListener('click', function() {
-            isAscending = !isAscending;
-            this.classList.toggle('desc', !isAscending);
-            
-            // Update FontAwesome icon based on sort direction
-            const sortIcon = document.getElementById('sort-icon');
-            if (isAscending) {
-                sortIcon.className = 'fas fa-arrow-down';
-            } else {
-                sortIcon.className = 'fas fa-arrow-down';
-            }
-            
-            filterAndDisplayProducts();
-        });
+    
     }
 
     // Initialize the page
@@ -456,8 +429,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!searchButton) missingElements.push('search-button');
         if (!tagFiltersContainer) missingElements.push('tag-filters');
         if (!clearFiltersButton) missingElements.push('clear-filters');
-        if (!sortSelect) missingElements.push('sort-select');
-        if (!sortDirectionButton) missingElements.push('sort-direction');
 
         if (missingElements.length > 0) {
             console.error(`Initialization failed: Missing DOM elements: ${missingElements.join(', ')}`);
@@ -469,7 +440,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setupEventListeners();
         clearFiltersButton.style.display = 'none'; // Keep hiding clear button initially
-        sortDirectionButton.style.display = 'none'; // Ocultar botón de dirección inicialmente
         triggerSearchAndFetch(); // Fetch products immediately on load
     }
 
