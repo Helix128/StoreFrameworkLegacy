@@ -40,7 +40,7 @@ def init_db():
         )
     ''')
     
-    # Create tags table
+    # Create tags table (for brands)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS tags (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,6 +59,25 @@ def init_db():
         )
     ''')
     
+    # Create categories table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL
+        )
+    ''')
+    
+    # Create product_categories relation table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS product_categories (
+            product_id INTEGER,
+            category_id INTEGER,
+            PRIMARY KEY (product_id, category_id),
+            FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
+            FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
+        )
+    ''')
+    
     conn.commit()
     
     # Check if we need to migrate data from JSON
@@ -70,6 +89,9 @@ def init_db():
             if os.path.exists(json_path):
                 with open(json_path, 'r', encoding='utf-8') as file:
                     products = json.load(file)
+                
+                # First, ensure the "Marca" category exists for migration
+                cursor.execute("INSERT OR IGNORE INTO categories (name) VALUES (?)", ("Marca",))
                 
                 for product in products:
                     # Insert product
@@ -86,20 +108,34 @@ def init_db():
                     
                     product_id = product['id']
                     
-                    # Process tags
+                    # During migration, treat tags as both categories and brands initially
                     for tag_name in product['tags']:
-                        # Add tag if it doesn't exist
+                        # Add tag if it doesn't exist (as brand)
                         cursor.execute("INSERT OR IGNORE INTO tags (name) VALUES (?)", (tag_name,))
                         
                         # Get tag id
                         cursor.execute("SELECT id FROM tags WHERE name = ?", (tag_name,))
                         tag_id = cursor.fetchone()[0]
                         
-                        # Link product to tag
+                        # Link product to tag (brand)
                         cursor.execute('''
                             INSERT OR IGNORE INTO product_tags (product_id, tag_id)
                             VALUES (?, ?)
                         ''', (product_id, tag_id))
+                        
+                        # Also add as category during migration
+                        # (admin can clean up later if needed)
+                        cursor.execute("INSERT OR IGNORE INTO categories (name) VALUES (?)", (tag_name,))
+                        
+                        # Get category id
+                        cursor.execute("SELECT id FROM categories WHERE name = ?", (tag_name,))
+                        category_id = cursor.fetchone()[0]
+                        
+                        # Link product to category
+                        cursor.execute('''
+                            INSERT OR IGNORE INTO product_categories (product_id, category_id)
+                            VALUES (?, ?)
+                        ''', (product_id, category_id))
                 
                 conn.commit()
                 print("Data successfully migrated from JSON to SQLite")
@@ -110,6 +146,7 @@ def init_db():
 
 # Initialize database when the app starts
 init_db()
+
 @app.route('/favicon.ico')
 def serve_favicon():
     public_dir = os.path.join(CURRENT_DIR, 'public')
@@ -143,7 +180,7 @@ def authenticate():
         return jsonify({'success': True})
     return jsonify({'success': False, 'message': 'Contraseña incorrecta'}), 401
 
-# API to get all products with their tags
+# API to get all products with their tags and categories
 @app.route('/products.json')
 def get_products_json():
     try:
@@ -160,7 +197,7 @@ def get_products_json():
         for row in cursor.fetchall():
             product = dict(row)
             
-            # Get tags for this product
+            # Get tags (brands) for this product
             cursor.execute('''
                 SELECT t.name FROM tags t
                 JOIN product_tags pt ON t.id = pt.tag_id
@@ -168,6 +205,16 @@ def get_products_json():
             ''', (product['id'],))
             
             product['tags'] = [tag[0] for tag in cursor.fetchall()]
+            
+            # Get categories for this product
+            cursor.execute('''
+                SELECT c.name FROM categories c
+                JOIN product_categories pc ON c.id = pc.category_id
+                WHERE pc.product_id = ?
+            ''', (product['id'],))
+            
+            product['categories'] = [category[0] for category in cursor.fetchall()]
+            
             products.append(product)
         
         conn.close()
@@ -192,7 +239,7 @@ def get_products():
         for row in cursor.fetchall():
             product = dict(row)
             
-            # Get tags for this product
+            # Get tags (brands) for this product
             cursor.execute('''
                 SELECT t.name FROM tags t
                 JOIN product_tags pt ON t.id = pt.tag_id
@@ -200,6 +247,16 @@ def get_products():
             ''', (product['id'],))
             
             product['tags'] = [tag[0] for tag in cursor.fetchall()]
+            
+            # Get categories for this product
+            cursor.execute('''
+                SELECT c.name FROM categories c
+                JOIN product_categories pc ON c.id = pc.category_id
+                WHERE pc.product_id = ?
+            ''', (product['id'],))
+            
+            product['categories'] = [category[0] for category in cursor.fetchall()]
+            
             products.append(product)
         
         conn.close()
@@ -207,7 +264,7 @@ def get_products():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# API to get all available tags
+# API to get all available tags (brands)
 @app.route('/api/tags', methods=['GET'])
 def get_tags():
     try:
@@ -219,6 +276,21 @@ def get_tags():
         
         conn.close()
         return jsonify(tags)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# API to get all available categories
+@app.route('/api/categories', methods=['GET'])
+def get_categories():
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT name FROM categories")
+        categories = [category[0] for category in cursor.fetchall()]
+        
+        conn.close()
+        return jsonify(categories)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -261,7 +333,7 @@ def add_product():
         
         product_id = cursor.lastrowid
         
-        # Process tags
+        # Process tags (brands)
         if 'tags' in data:
             tags = data['tags'].split(',')
             for tag_name in tags:
@@ -280,14 +352,34 @@ def add_product():
                         VALUES (?, ?)
                     ''', (product_id, tag_id))
         
+        # Process categories
+        if 'categories' in data:
+            categories = data['categories'].split(',')
+            for category_name in categories:
+                category_name = category_name.strip()
+                if category_name:
+                    # Add category if it doesn't exist
+                    cursor.execute("INSERT OR IGNORE INTO categories (name) VALUES (?)", (category_name,))
+                    
+                    # Get category id
+                    cursor.execute("SELECT id FROM categories WHERE name = ?", (category_name,))
+                    category_id = cursor.fetchone()[0]
+                    
+                    # Link product to category
+                    cursor.execute('''
+                        INSERT INTO product_categories (product_id, category_id)
+                        VALUES (?, ?)
+                    ''', (product_id, category_id))
+        
         conn.commit()
         
-        # Get the newly created product with its tags
+        # Get the newly created product with its tags and categories
         cursor.execute("SELECT * FROM products WHERE id = ?", (product_id,))
         product_row = cursor.fetchone()
         if product_row:
             product = dict(product_row)
             
+            # Get tags
             cursor.execute('''
                 SELECT t.name FROM tags t
                 JOIN product_tags pt ON t.id = pt.tag_id
@@ -295,6 +387,15 @@ def add_product():
             ''', (product_id,))
             
             product['tags'] = [tag[0] for tag in cursor.fetchall()]
+            
+            # Get categories
+            cursor.execute('''
+                SELECT c.name FROM categories c
+                JOIN product_categories pc ON c.id = pc.category_id
+                WHERE pc.product_id = ?
+            ''', (product_id,))
+            
+            product['categories'] = [category[0] for category in cursor.fetchall()]
             
             conn.close()
             return jsonify(product)
@@ -361,7 +462,7 @@ def update_product(product_id):
         # Delete existing tag relations
         cursor.execute("DELETE FROM product_tags WHERE product_id = ?", (product_id,))
         
-        # Process tags
+        # Process tags (brands)
         if 'tags' in data:
             tags = data['tags'].split(',')
             for tag_name in tags:
@@ -380,14 +481,37 @@ def update_product(product_id):
                         VALUES (?, ?)
                     ''', (product_id, tag_id))
         
+        # Delete existing category relations
+        cursor.execute("DELETE FROM product_categories WHERE product_id = ?", (product_id,))
+        
+        # Process categories
+        if 'categories' in data:
+            categories = data['categories'].split(',')
+            for category_name in categories:
+                category_name = category_name.strip()
+                if category_name:
+                    # Add category if it doesn't exist
+                    cursor.execute("INSERT OR IGNORE INTO categories (name) VALUES (?)", (category_name,))
+                    
+                    # Get category id
+                    cursor.execute("SELECT id FROM categories WHERE name = ?", (category_name,))
+                    category_id = cursor.fetchone()[0]
+                    
+                    # Link product to category
+                    cursor.execute('''
+                        INSERT INTO product_categories (product_id, category_id)
+                        VALUES (?, ?)
+                    ''', (product_id, category_id))
+        
         conn.commit()
         
-        # Get the updated product with its tags
+        # Get the updated product with its tags and categories
         cursor.execute("SELECT * FROM products WHERE id = ?", (product_id,))
         product_row = cursor.fetchone()
         if product_row:
             product = dict(product_row)
             
+            # Get tags
             cursor.execute('''
                 SELECT t.name FROM tags t
                 JOIN product_tags pt ON t.id = pt.tag_id
@@ -395,6 +519,15 @@ def update_product(product_id):
             ''', (product_id,))
             
             product['tags'] = [tag[0] for tag in cursor.fetchall()]
+            
+            # Get categories
+            cursor.execute('''
+                SELECT c.name FROM categories c
+                JOIN product_categories pc ON c.id = pc.category_id
+                WHERE pc.product_id = ?
+            ''', (product_id,))
+            
+            product['categories'] = [category[0] for category in cursor.fetchall()]
             
             conn.close()
             return jsonify(product)
@@ -428,7 +561,7 @@ def delete_product(product_id):
             if os.path.exists(file_path):
                 os.remove(file_path)
         
-        # Delete product (cascade will remove product_tags)
+        # Delete product (cascade will remove product_tags and product_categories)
         cursor.execute("DELETE FROM products WHERE id = ?", (product_id,))
         conn.commit()
         
@@ -436,6 +569,12 @@ def delete_product(product_id):
         cursor.execute('''
             DELETE FROM tags 
             WHERE id NOT IN (SELECT DISTINCT tag_id FROM product_tags)
+        ''')
+        
+        # Clean up orphaned categories
+        cursor.execute('''
+            DELETE FROM categories 
+            WHERE id NOT IN (SELECT DISTINCT category_id FROM product_categories)
         ''')
         conn.commit()
         

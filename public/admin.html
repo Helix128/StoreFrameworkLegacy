@@ -68,7 +68,8 @@
                                     <th>Imagen</th>
                                     <th>Nombre</th>
                                     <th>Precio</th>
-                                    <th>Etiquetas</th>
+                                    <th>Categorías</th>
+                                    <th>Marcas</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -117,8 +118,14 @@
                         <input type="file" id="product-image" name="image" class="form-control" accept="image/*">
                     </div>
                     <div class="form-group">
-                        <label for="product-tags" class="form-label">Etiquetas (separadas por comas)</label>
+                        <label for="product-categories" class="form-label">Categorías (separadas por comas)</label>
+                        <input type="text" id="product-categories" name="categories" class="form-control">
+                        <div class="form-help">Ejemplos: Calzado, Conjuntos, Vestuario, Gorros, Vape, etc.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-tags" class="form-label">Marcas (separadas por comas)</label>
                         <input type="text" id="product-tags" name="tags" class="form-control">
+                        <div class="form-help">Nombres de marcas, añade "trending" para productos destacados.</div>
                     </div>
                 </form>
             </div>

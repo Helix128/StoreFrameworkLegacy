@@ -30,17 +30,34 @@
                     </div>
                 </div>
                 
-                <!-- Nueva sección de ordenamiento -->
+                <!-- Sorting options -->
+                <div class="filter-container">
+                    <h3 class="filter-title">Ordenar alfabéticamente</h3>
+                    <div class="sort-options">
+                        <button id="sort-direction" class="btn btn-sm btn-outline sort-dir-btn">
+                            <i class="fas fa-sort-amount-up"></i> <!-- Changed icon to UP for A-Z default -->
+                        </button>
+                    </div>
+                </div>
                 
+                <!-- Categories filter -->
+                <div class="filter-container">
+                    <h3 class="filter-title">Categorías</h3>
+                    <div id="category-filters" class="filter-group">
+                        <!-- Categories will be loaded dynamically -->
+                    </div>
+                </div>
                 
+                <!-- Brands filter (using existing tags) -->
                 <div class="filter-container">
                     <h3 class="filter-title">Marcas</h3>
-                    <div id="tag-filters" class="tag-filters">
-                  
+                    <div id="tag-filters" class="filter-group">
+                        <!-- Brands will be loaded dynamically -->
                     </div>
-                    <div class="filter-actions">
-                        <button id="clear-filters" class="btn btn-outline">Quitar filtros</button>
-                    </div>
+                </div>
+                
+                <div class="filter-actions">
+                    <button id="clear-filters" class="btn btn-outline">Quitar filtros</button>
                 </div>
             </div>
             
@@ -75,33 +92,5 @@
     
     <script src="products.js"></script>
     <script src="modal-contact.js"></script>
-    <script>
-        // Helper script to ensure tag filters have the correct structure
-        document.addEventListener('DOMContentLoaded', function() {
-            // This ensures that any dynamically added filters will have the span wrapper for the text
-            const tagFiltersContainer = document.getElementById('tag-filters');
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.type === 'childList') {
-                        mutation.addedNodes.forEach(function(node) {
-                            if (node.nodeType === 1 && node.classList.contains('tag-filter')) {
-                                // If the inner content is not already wrapped in a span
-                                if (!node.querySelector('span')) {
-                                    const text = node.textContent;
-                                    node.textContent = '';
-                                    const span = document.createElement('span');
-                                    span.textContent = text;
-                                    node.appendChild(span);
-                                }
-                            }
-                        });
-                    }
-                });
-            });
-            
-            // Observe tag-filters for added children
-            observer.observe(tagFiltersContainer, { childList: true });
-        });
-    </script>
 </body>
 </html>

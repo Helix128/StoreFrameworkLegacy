@@ -5,18 +5,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('product-search');
     const searchButton = document.getElementById('search-button');
     const tagFiltersContainer = document.getElementById('tag-filters');
+    const categoryFiltersContainer = document.getElementById('category-filters');
     const clearFiltersButton = document.getElementById('clear-filters');
+    const sortDirectionBtn = document.getElementById('sort-direction');
 
     let allProducts = [];
-    let activeFilters = [];
-    let lastFilteredResults = null; // Keep memoization for filtering after fetch
+    let activeBrandFilters = [];
+    let activeCategoryFilters = [];
+    let lastFilteredResults = null;
     let lastSearchTerm = '';
-    let lastFilterSet = [];
-    let tagsCreated = false; // Flag to ensure tags are created only once
-    let currentSortOption = 'trending'; // Opción de ordenamiento predeterminada
-    let isAscending = true; // Dirección de ordenamiento predeterminada
+    let lastBrandFilterSet = [];
+    let lastCategoryFilterSet = [];
+    let brandsCreated = false;
+    let categoriesCreated = false;
+    let isAscending = true; // Default to ascending (A-Z)
 
-    // Function to fetch products from JSON file (no caching)
+    // Function to fetch products from JSON file
     async function fetchProducts() {
         console.log('Fetching products from server...');
         try {
@@ -57,14 +61,21 @@ document.addEventListener('DOMContentLoaded', () => {
             
         return `
             <div class="card product-card" style="animation-delay: ${index * 100}ms;">
-            `+tagBadge(product,"trending")+
-                `<div class="card-img-container">
+            ${tagBadge(product,"trending")}
+                <div class="card-img-container">
                     <img src="${imageSrc}" alt="${product.name}" class="card-img" onerror="this.src='placeholder.jpg'">
                 </div>
                 <div class="card-body">
                     <h3 class="card-title">${product.name}</h3>
                     <div class="product-tags">
-                        ${product.tags.map(tag => `<span class="badge">${tag}</span>`).join('')}
+                        ${product.categories && product.categories.length ? 
+                            product.categories.map(category => 
+                                `<span class="badge badge-category">${category}</span>`
+                            ).join('') : ''}
+                        ${product.tags && product.tags.length ? 
+                            product.tags.map(tag => 
+                                `<span class="badge badge-brand">${tag}</span>`
+                            ).join('') : ''}
                     </div>
                 </div>
                 <div class="card-footer">
@@ -84,67 +95,156 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Function to extract all unique tags
+    // Function to extract all unique tags (brands)
     function extractUniqueTags(products) {
         const allTags = new Set();
         products.forEach(product => {
-            product.tags.forEach(tag => allTags.add(tag));
+            if (product.tags) {
+                product.tags.forEach(tag => allTags.add(tag));
+            }
         });
         return Array.from(allTags).sort();
     }
 
-    // Function to create tag filters (only once)
-    function createTagFilters(tags) {
-        if (tagsCreated) return; // Don't recreate if already done
+    // Function to extract all unique categories
+    function extractUniqueCategories(products) {
+        const allCategories = new Set();
+        products.forEach(product => {
+            if (product.categories) {
+                product.categories.forEach(category => allCategories.add(category));
+            }
+        });
+        return Array.from(allCategories).sort();
+    }
 
-        tagFiltersContainer.innerHTML = ''; // Clear any previous placeholders
+    // Function to create brand filters
+    function createBrandFilters(tags) {
+        if (brandsCreated) return;
+
+        tagFiltersContainer.innerHTML = '';
         tags.forEach(tag => {
-            if(tag=="trending") return;
-            const tagButton = document.createElement('button');
-            tagButton.classList.add('span', 'tag-filter');
-            tagButton.textContent = tag;
-            tagButton.dataset.tag = tag;
+            if(tag === "trending") return;
 
-            // Add click event listener to toggle filter
-            tagButton.addEventListener('click', () => {
-                tagButton.classList.toggle('active');
+            const filterId = `brand-filter-${tag.replace(/\s+/g, '-')}`; // Create unique ID
 
-                if (tagButton.classList.contains('active')) {
-                    activeFilters.push(tag);
-                } else {
-                    activeFilters = activeFilters.filter(t => t !== tag);
+            const filterWrapper = document.createElement('div');
+            filterWrapper.classList.add('filter-item');
+
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.id = filterId;
+            input.classList.add('filter-checkbox');
+            input.dataset.tag = tag;
+
+            const label = document.createElement('label');
+            label.htmlFor = filterId;
+            label.classList.add('filter-label');
+            label.textContent = tag;
+
+            // Add click event listener to the wrapper (or input/label)
+            filterWrapper.addEventListener('click', (e) => {
+                // Prevent double toggling if clicking directly on checkbox/label
+                if (e.target !== input && e.target !== label) {
+                    input.checked = !input.checked;
                 }
-
-                // Apply filters immediately after tag change
+                
+                // Update active filters based on checkbox state
+                if (input.checked) {
+                    activeBrandFilters.push(tag);
+                } else {
+                    activeBrandFilters = activeBrandFilters.filter(t => t !== tag);
+                }
+                
+                // Apply filters immediately after change
+                filterAndDisplayProducts();
+            });
+            
+            // Handle direct clicks on checkbox
+            input.addEventListener('change', () => {
+                 if (input.checked) {
+                    if (!activeBrandFilters.includes(tag)) activeBrandFilters.push(tag);
+                } else {
+                    activeBrandFilters = activeBrandFilters.filter(t => t !== tag);
+                }
                 filterAndDisplayProducts();
             });
 
-            tagFiltersContainer.appendChild(tagButton);
+
+            filterWrapper.appendChild(input);
+            filterWrapper.appendChild(label);
+            tagFiltersContainer.appendChild(filterWrapper);
         });
-        tagsCreated = true; // Mark tags as created
-        // Show the clear filters button only after tags are created
-        if (tags.length > 0) {
+        brandsCreated = true;
+    }
+
+    // Function to create category filters
+    function createCategoryFilters(categories) {
+        if (categoriesCreated) return;
+
+        categoryFiltersContainer.innerHTML = '';
+        categories.forEach(category => {
+            const filterId = `category-filter-${category.replace(/\s+/g, '-')}`; // Create unique ID
+
+            const filterWrapper = document.createElement('div');
+            filterWrapper.classList.add('filter-item');
+
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.id = filterId;
+            input.classList.add('filter-checkbox');
+            input.dataset.category = category;
+
+            const label = document.createElement('label');
+            label.htmlFor = filterId;
+            label.classList.add('filter-label');
+            label.textContent = category;
+
+            // Add click event listener to the wrapper (or input/label)
+             filterWrapper.addEventListener('click', (e) => {
+                // Prevent double toggling if clicking directly on checkbox/label
+                if (e.target !== input && e.target !== label) {
+                    input.checked = !input.checked;
+                }
+                
+                // Update active filters based on checkbox state
+                if (input.checked) {
+                    activeCategoryFilters.push(category);
+                } else {
+                    activeCategoryFilters = activeCategoryFilters.filter(c => c !== category);
+                }
+                
+                // Apply filters immediately after change
+                filterAndDisplayProducts();
+            });
+            
+            // Handle direct clicks on checkbox
+            input.addEventListener('change', () => {
+                 if (input.checked) {
+                    if (!activeCategoryFilters.includes(category)) activeCategoryFilters.push(category);
+                } else {
+                    activeCategoryFilters = activeCategoryFilters.filter(c => c !== category);
+                }
+                filterAndDisplayProducts();
+            });
+
+            filterWrapper.appendChild(input);
+            filterWrapper.appendChild(label);
+            categoryFiltersContainer.appendChild(filterWrapper);
+        });
+        categoriesCreated = true;
+        
+        // Show the clear filters button after filters are created
+        if (categories.length > 0 || brandsCreated) {
             clearFiltersButton.style.display = 'inline-block';
         }
     }
 
-    function toggleTag(tag){
-        const tagButton = document.querySelector(`.tag-filter[data-tag="${tag}"]`);
-        if (tagButton) {
-            tagButton.classList.toggle('active');
-            if (tagButton.classList.contains('active')) {
-                activeFilters.push(tag);
-            } else {
-                activeFilters = activeFilters.filter(t => t !== tag);
-            }
-        }
-    }
-
     // Function to filter products with memoization
-    function filterProducts(products, searchTerm, tagFilters) {
+    function filterProducts(products, searchTerm, brandFilters, categoryFilters) {
         if (lastFilteredResults && 
             searchTerm === lastSearchTerm && 
-            JSON.stringify(tagFilters) === JSON.stringify(lastFilterSet)) {
+            JSON.stringify(brandFilters) === JSON.stringify(lastBrandFilterSet) &&
+            JSON.stringify(categoryFilters) === JSON.stringify(lastCategoryFilterSet)) {
             return lastFilteredResults;
         }
         
@@ -153,67 +253,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 product.description.toLowerCase().includes(searchTerm.toLowerCase());
             
-            const tagMatch = tagFilters.length === 0 || 
-                tagFilters.every(tag => product.tags.includes(tag));
+            // Changed from every() to some() for additive filtering
+            // If no brand filters are active, show all products
+            // If brand filters are active, show products with ANY of those brands
+            const brandMatch = brandFilters.length === 0 || 
+                brandFilters.some(tag => product.tags && product.tags.includes(tag));
             
-            return searchMatch && tagMatch;
+            // Changed from every() to some() for additive filtering
+            // If no category filters are active, show all products
+            // If category filters are active, show products with ANY of those categories
+            const categoryMatch = categoryFilters.length === 0 || 
+                categoryFilters.some(category => product.categories && product.categories.includes(category));
+            
+            return searchMatch && brandMatch && categoryMatch;
         });
         
         lastFilteredResults = filtered;
         lastSearchTerm = searchTerm;
-        lastFilterSet = [...tagFilters];
+        lastBrandFilterSet = [...brandFilters];
+        lastCategoryFilterSet = [...categoryFilters];
         
         return filtered;
     }
 
-    // Nueva función para ordenar productos
+    // Function to sort products
     function sortProducts(products) {
-        // Crear una copia para no modificar el array original
         const sortedProducts = [...products];
         
-        switch (currentSortOption) {
-            case 'trending':
-                // Ordenar primero por trending (los productos trending primero)
-                // y luego alfabéticamente por nombre
-                sortedProducts.sort((a, b) => {
-                    const aTrending = a.tags.includes('trending') ? 1 : 0;
-                    const bTrending = b.tags.includes('trending') ? 1 : 0;
-                    
-                    // Si los estados trending son diferentes, ordenar por ellos
-                    if (bTrending !== aTrending) {
-                        return bTrending - aTrending;
-                    }
-                    
-                    // Si ambos son trending o ambos no son trending, ordenar alfabéticamente
-                    return isAscending ? 
-                        a.name.localeCompare(b.name) : 
-                        b.name.localeCompare(a.name);
-                });
-                break;
-                
-            case 'alphabetical':
-                // Ordenar alfabéticamente por nombre
-                sortedProducts.sort((a, b) => {
-                    return isAscending ? 
-                        a.name.localeCompare(b.name) : 
-                        b.name.localeCompare(a.name);
-                });
-                break;
-                
-            case 'price':
-                // Ordenar por precio
-                sortedProducts.sort((a, b) => {
-                    return !isAscending ? 
-                        a.price - b.price : 
-                        b.price - a.price;
-                });
-                break;
-        }
+        // Always sort alphabetically, only direction changes
+        sortedProducts.sort((a, b) => {
+            return isAscending ? 
+                a.name.localeCompare(b.name) : 
+                b.name.localeCompare(a.name);
+        });
         
         return sortedProducts;
     }
 
-    // Modificar la función filterAndDisplayProducts para incluir el ordenamiento
+    // Function to filter and display products
     function filterAndDisplayProducts() {
         if (!allProducts || allProducts.length === 0) {
             displayInitialMessage();
@@ -221,9 +298,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const searchTerm = searchInput.value.trim();
-        const filteredProducts = filterProducts(allProducts, searchTerm, activeFilters);
+        const filteredProducts = filterProducts(allProducts, searchTerm, activeBrandFilters, activeCategoryFilters);
         
-        // Ordenar los productos filtrados
+        // Sort the filtered products
         const sortedProducts = sortProducts(filteredProducts);
 
         displayProducts(sortedProducts);
@@ -279,8 +356,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p>${product.description}</p>
                     </div>
                     <div class="product-detail-tags">
-                        <div class="product-tags">
-                            ${product.tags.map(tag => `<span class="badge">${tag}</span>`).join('')}
+                        <div class="product-category-tags">
+                            ${product.categories && product.categories.length ? 
+                                `<strong>Categorías:</strong> ${product.categories.map(
+                                    category => `<span class="badge badge-category">${category}</span>`
+                                ).join('')}` : ''
+                            }
+                        </div>
+                        <div class="product-brand-tags">
+                            ${product.tags && product.tags.length ? 
+                                `<strong>Marcas:</strong> ${product.tags.map(
+                                    tag => `<span class="badge badge-brand">${tag}</span>`
+                                ).join('')}` : ''
+                            }
                         </div>
                     </div>
                     ${product.sku ? `<div class="product-detail-sku"><strong>SKU:</strong> ${product.sku}</div>` : ''}
@@ -321,7 +409,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to display the initial message
     function displayInitialMessage() {
-        // This function might still be useful for the 'Clear Filters' action
         productsContainer.innerHTML = `
             <div class="initial-message">
                 <p>Ingresa un término de búsqueda y presiona Enter o haz clic en Buscar para cargar productos.</p>
@@ -329,14 +416,10 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         errorMessage.style.display = 'none';
         loadingElement.style.display = 'none';
-        // Hide clear filters button when resetting to initial state
         clearFiltersButton.style.display = 'none';
-        // Reset tagsCreated flag if we want tags to reappear on subsequent searches after clearing
-        // tagsCreated = false; // Optional: uncomment if tags should be regenerated after clearing
-        // tagFiltersContainer.innerHTML = ''; // Optional: uncomment to clear tag buttons visually
     }
 
-    // New function to handle fetching and initial display
+    // Function to handle fetching and initial display
     async function triggerSearchAndFetch() {
         loadingElement.style.display = 'flex';
         errorMessage.style.display = 'none';
@@ -345,9 +428,14 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             allProducts = await fetchProducts();
 
-            if (!tagsCreated) {
+            if (!brandsCreated) {
                 const uniqueTags = extractUniqueTags(allProducts);
-                createTagFilters(uniqueTags);
+                createBrandFilters(uniqueTags);
+            }
+            
+            if (!categoriesCreated) {
+                const uniqueCategories = extractUniqueCategories(allProducts);
+                createCategoryFilters(uniqueCategories);
             }
 
             filterAndDisplayProducts();
@@ -379,13 +467,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Add event listeners for search and filter
+    // Add event listeners for search, filter, and sort
     function setupEventListeners() {
-        if (!searchButton || !searchInput || !clearFiltersButton) {
+        if (!searchButton || !searchInput || !clearFiltersButton || !sortDirectionBtn) {
             console.error('Missing UI elements:', {
                 searchButton: !!searchButton,
                 searchInput: !!searchInput,
-                clearFiltersButton: !!clearFiltersButton
+                clearFiltersButton: !!clearFiltersButton,
+                sortDirectionBtn: !!sortDirectionBtn
             });
             return;
         }
@@ -400,23 +489,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
         clearFiltersButton.addEventListener('click', () => {
             searchInput.value = '';
-            activeFilters = [];
-            document.querySelectorAll('.tag-filter.active').forEach(button => {
-                button.classList.remove('active');
+            activeBrandFilters = [];
+            activeCategoryFilters = [];
+            
+            // Uncheck all filter checkboxes
+            document.querySelectorAll('.filter-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
             });
 
             lastFilteredResults = null;
             lastSearchTerm = '';
-            lastFilterSet = [];
+            lastBrandFilterSet = [];
+            lastCategoryFilterSet = [];
 
-            // Instead of hiding everything with displayInitialMessage(),
-            // just filter and display all products without any filters
+            // Just filter and display all products without any filters
             filterAndDisplayProducts();
         });
-
-  
         
-    
+        // Sort direction button click event
+        sortDirectionBtn.addEventListener('click', function() {
+            isAscending = !isAscending;
+            const icon = this.querySelector('i');
+            
+            if (isAscending) {
+                icon.className = 'fas fa-sort-amount-up';
+            } else {
+                icon.className = 'fas fa-sort-amount-down';
+            }
+            
+            filterAndDisplayProducts();
+        });
     }
 
     // Initialize the page
@@ -428,7 +530,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!searchInput) missingElements.push('product-search');
         if (!searchButton) missingElements.push('search-button');
         if (!tagFiltersContainer) missingElements.push('tag-filters');
+        if (!categoryFiltersContainer) missingElements.push('category-filters');
         if (!clearFiltersButton) missingElements.push('clear-filters');
+        if (!sortDirectionBtn) missingElements.push('sort-direction');
 
         if (missingElements.length > 0) {
             console.error(`Initialization failed: Missing DOM elements: ${missingElements.join(', ')}`);
@@ -439,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         setupEventListeners();
-        clearFiltersButton.style.display = 'none'; // Keep hiding clear button initially
+        clearFiltersButton.style.display = 'none'; // Hide clear button initially
         triggerSearchAndFetch(); // Fetch products immediately on load
     }
 

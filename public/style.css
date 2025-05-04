@@ -418,7 +418,7 @@
     .product-card {
       opacity: 0;
       transform: translateY(20px);
-      animation: fadeInUp 0.2s ease forwards;
+      animation: fadeInUp 0.15s ease forwards; /* Reduced duration from 0.2s */
       /* Removed fixed height to allow natural content flow */
     }
     
@@ -1528,76 +1528,72 @@
       margin-bottom: var(--space-3);
     }
     
-    .tag-filters {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-3);
+    /* New Filter Grid Styles */
+    .filter-group {
+      display: grid;
+      /* Use auto-fit for responsive columns with a minimum width */
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
+      gap: var(--space-2) var(--space-3); /* Adjusted column gap */
       margin-bottom: var(--space-4);
     }
     
-    .tag-filter {
-      text-align: left;
-      justify-content: flex-start;
+    .filter-item {
       display: flex;
       align-items: center;
-      background: none;
-      border: none;
-      color: var(--color-light-silver);
-      padding: var(--space-2);
       cursor: pointer;
-      position: relative;
-      transition: color var(--transition-fast);
     }
     
-    .tag-filter:hover {
-      color: var(--color-white);
-    }
-    
-    /* Create toggle circle */
-    .tag-filter::before {
-      content: '';
-      display: inline-block;
+    .filter-checkbox {
+      appearance: none;
       width: 18px;
       height: 18px;
       border: 2px solid var(--color-light-silver);
-      border-radius: 25%;
-      margin-right: var(--space-3);
-      transition: background-color 0.2s var(--ease-bounce), border-color 0.2s var(--ease-bounce);
+      border-radius: var(--border-radius-sm); /* Square checkbox */
+      margin-right: var(--space-2);
+      position: relative;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+      flex-shrink: 0; /* Prevent checkbox from shrinking */
     }
     
-    /* Fill circle when active */
-    .tag-filter.active::before {
+    .filter-checkbox:checked {
       background-color: var(--color-white);
       border-color: var(--color-white);
-      transform: scale(0.9);
     }
     
-    /* Text underline animation effect */
-    .tag-filter span {
-      position: relative;
-    }
-    
-    .tag-filter span::after {
-      content: '';
+    /* Optional: Add a checkmark inside */
+    .filter-checkbox:checked::after {
+      content: '✓';
       position: absolute;
-      bottom: -2px;
-      left: 0;
-      width: 0;
-      height: 2px;
-      background-color: var(--color-white);
-      transition: width 0.25s var(--ease-out-quart);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--color-dark);
+      font-size: 12px;
+      font-weight: bold;
+      line-height: 1;
     }
     
-    .tag-filter:hover span::after {
-      width: 100%;
+    .filter-label {
+      color: var(--color-light-silver);
+      transition: color var(--transition-fast);
+      cursor: pointer;
+      /* Prevent label text from wrapping */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
-    .tag-filter.active {
+    .filter-item:hover .filter-label {
       color: var(--color-white);
     }
     
-    .tag-filter.active span::after {
-      width: 100%;
+    .filter-item:hover .filter-checkbox {
+      border-color: var(--color-white);
+    }
+    
+    .filter-checkbox:checked + .filter-label {
+      color: var(--color-white); /* Keep label white when checked */
     }
     
     .filter-actions {
@@ -1637,10 +1633,6 @@
       margin-bottom: var(--space-4);
     }
     
-    .sort-options select {
-      flex: 1;
-    }
-    
     #sort-direction {
       padding: var(--space-2);
       min-width: 40px;
@@ -1658,6 +1650,90 @@
     #sort-direction:hover {
       background-color: var(--color-gray);
       border-color: var(--color-white);
+    }
+    
+    /* Category and tag filters */
+    .category-filter, .tag-filter {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.5rem 0.75rem;
+      background-color: var(--light-color);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .category-filter.active {
+      background-color: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+    
+    .tag-filter.active {
+      background-color: var(--accent-color);
+      color: white;
+      border-color: var(--accent-color);
+    }
+    
+    /* Badge styling for categories vs brands */
+    .badge-category {
+      background-color: var(--primary-color-light);
+      color: var(--primary-color-dark);
+    }
+    
+    .badge-brand {
+      background-color: var(--accent-color-light);
+      color: var(--accent-color-dark);
+    }
+    
+    /* Sorting options */
+    .sort-options {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .sort-options select {
+      flex: 1;
+    }
+    
+    .sort-dir-btn {
+      width: 40px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Form help text */
+    .form-help {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+    
+    /* Product details modal - categories and brands section */
+    .product-detail-tags {
+      margin: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .product-category-tags,
+    .product-brand-tags {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    
+    .product-category-tags strong,
+    .product-brand-tags strong {
+      margin-right: 0.5rem;
     }
     
     /* ==========================================================================

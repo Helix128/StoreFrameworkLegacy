@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const productImage = document.getElementById('product-image');
     const imagePreview = document.getElementById('image-preview');
     const imagePreviewContainer = document.querySelector('.image-preview-container');
+    const productCategories = document.getElementById('product-categories');
 
     // State
     let products = [];
@@ -142,8 +143,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${product.name}</td>
                 <td>${formattedPrice}</td>
                 <td>
+                    <div class="product-categories">
+                        ${product.categories && product.categories.map(category => 
+                            `<span class="badge badge-category">${category}</span>`).join(' ') || ''}
+                    </div>
+                </td>
+                <td>
                     <div class="product-tags">
-                        ${product.tags.map(tag => `<span class="badge">${tag}</span>`).join(' ')}
+                        ${product.tags && product.tags.map(tag => 
+                            `<span class="badge badge-brand">${tag}</span>`).join(' ') || ''}
                     </div>
                 </td>
                 <td class="table-actions">
@@ -187,7 +195,20 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('product-name').value = product.name;
         document.getElementById('product-price').value = product.price;
         document.getElementById('product-description').value = product.description;
-        document.getElementById('product-tags').value = product.tags.join(', ');
+        
+        // Fill categories field
+        if (product.categories && Array.isArray(product.categories)) {
+            document.getElementById('product-categories').value = product.categories.join(', ');
+        } else {
+            document.getElementById('product-categories').value = '';
+        }
+        
+        // Fill tags field (brands)
+        if (product.tags && Array.isArray(product.tags)) {
+            document.getElementById('product-tags').value = product.tags.join(', ');
+        } else {
+            document.getElementById('product-tags').value = '';
+        }
         
         // Reset file input to ensure no cached file selection
         productImage.value = '';
@@ -257,20 +278,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: formData
             });
             
-            const responseData = await response.json();
-            
             if (!response.ok) {
+                const responseData = await response.json();
                 throw new Error(responseData.error || `HTTP error! Status: ${response.status}`);
             }
+            
+            const responseData = await response.json();
             
             // Close modal and reload products
             productModal.classList.remove('show');
             await loadProducts();
             
-            showNotification(
-                'Éxito',
-                currentProductId ? 'Producto actualizado correctamente.' : 'Producto añadido correctamente.'
-            );
+            // Only show notification for adding products, not for editing
+            if (!currentProductId) {
+                showNotification('Éxito', 'Producto añadido correctamente.');
+            } else {
+                showNotification('Éxito', 'Producto actualizado correctamente.');
+            }
         } catch (error) {
             console.error('Error saving product:', error);
             showNotification('Error', `No se pudo guardar el producto: ${error.message}`);
